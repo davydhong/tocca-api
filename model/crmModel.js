@@ -1,5 +1,5 @@
 import admin from 'firebase-admin';
-import serviceAccount from '../tocca-db-firebase-adminsdk-zr8pk-391b8c803d.json';
+import serviceAccount from '../key/tocca-db-firebase-adminsdk-zr8pk-391b8c803d.json';
 
 // firestore initialization
 admin.initializeApp({
