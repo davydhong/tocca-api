@@ -41,7 +41,7 @@ app.get(
 app.use('/api', router);
 
 // 404 for unspecified routes and methods
-app.all('/*', (req, res, next) => {
+app.all('/*', (req, res) => {
   res.status(404).send('404 NOT FOUND');
 });
 

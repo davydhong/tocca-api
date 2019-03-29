@@ -11,22 +11,35 @@ import { sizeLimit, cache } from './reqTracker';
 
 export const getUsers = (req, res) => {
   const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-  cache[ip] = cache[ip] + 1 || 0;
-  const [startID, endID] = [cache[ip], cache[ip] + 1].map(num => num * sizeLimit);
+  const startID = cache[ip] + 1 || 0;
+  // cache[ip] = cache[ip] || 0;
+  // const [startID, endID] = [cache[ip], cache[ip] + 1].map(num => num * sizeLimit);
+
+  console.log({ startID });
 
   db
     .ref('users')
     .orderByKey()
     .startAt(startID.toString())
-    .endAt(endID.toString())
+    .limitToFirst(sizeLimit)
     .once('value')
     .then((snapshot) => {
       if (!snapshot.val()) {
-        // redo the query with startID @ 0
+        // didn't get data, redo the query with startID @ 0
         cache[ip] = -1;
         res.send({ data: null });
       } else {
-        res.send({ data: snapshot.val() });
+        // realtime database returning array vs object.
+        // perform array check and filter out null.
+        let data = snapshot.val();
+        if (Array.isArray(data)) {
+          res.send(data.filter(val => val !== null));
+          cache[ip] = data[data.length - 1].user_id;
+        } else {
+          data = Object.values(data);
+          res.send(data);
+          cache[ip] = data[data.length - 1].user_id;
+        }
       }
     })
     .catch((error) => {
